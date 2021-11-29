@@ -1,0 +1,245 @@
+---
+title: "Collatz Conjecture exploration"
+author: "Phileas Dazeley-Gaist"
+date: "11/27/2021"
+output: 
+  html_document:
+    df_print: paged
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+[![Collatz Conjecture XKCD comic](3x+1_files/collatz_conjecture.png)](https://xkcd.com/710/)
+
+# Introduction
+
+From [Collatz conjecture, Wikipedia](https://en.wikipedia.org/wiki/Collatz_conjecture):  
+
+"Start with any positive integer n. Then each term is obtained from the previous 
+term as follows: if the previous term is even, the next term is one half of the 
+previous term. If the previous term is odd, the next term is 3 times the previous 
+term plus 1.
+
+**The conjecture is that no matter what value of n, the sequence will always reach 1.**"
+
+## The rules as R functions
+
+```{r}
+collatz_even <- function(even_int){
+  return(even_int / 2)
+}
+
+collatz_odd <- function(odd_int){
+  return(3 * odd_int + 1)
+}
+```
+
+## Brute force algorithm
+
+First of all, let's decide on a range of starting values for which we would like 
+to compute the trajectories of the Collatz sequences, and a maximum number of steps
+to compute for any starting value.
+
+```{r}
+seeds <- 1:10000
+max_s <- 1000
+```
+
+Now let's define a function that computed the trajectories and returns:
+
+```{r}
+collatz_brute_force <- function(start_int, max_steps = 1000){
+  new_val <- start_int
+  steps <- c(new_val)
+  step_count <- 0
+  
+  # This while statement could never disprove the Collatz conjecture if one start 
+  # integer were to lead to infinity, because it has no way of knowing that the 
+  # there is no solution, and without a break condition, it would naively keep 
+  # running the function ad infinitum. (it has been shown that there are no 
+  # starting values that disprove the Collatz conjecture inferior to 2^68)
+  
+  while(new_val != 1) {
+    step_count <- step_count + 1
+    if(new_val %% 2 == 0){
+      new_val <- collatz_even(new_val)
+      steps <- c(steps, new_val)}
+    else{
+      new_val <- collatz_odd(new_val)
+      steps <- c(steps, new_val)}
+    if(step_count > max_steps){
+      break
+    }
+  }
+  return(list(steps))
+}
+```
+
+## Brute force data collection
+
+```{r}
+# collecting the data
+collatz_data <- data.frame(seed = seeds)
+
+collatz_data <- collatz_data %>% 
+  rowwise() %>% 
+  mutate(sequence = list(collatz_brute_force(seed, max_steps = max_s))) %>% 
+  unnest(sequence) %>% 
+  rowwise() %>% 
+  mutate(max_val = max(sequence),
+         n_steps = length(sequence)) %>% 
+  mutate(step_index = list(1:n_steps))
+
+collatz_data
+```
+
+## Plots (respecting the rules)
+
+Before we break the rules, let's take a look at how our computed Collatz sequences 
+plot.
+
+First of all, let's plot a random Collatz sequence from our data frame:
+
+```{r}
+# standard plot
+set.seed(0)
+seed_value <- sample(seeds, 1)
+
+collatz_data %>% 
+  filter(seed == seed_value)%>% 
+  select(sequence) %>% 
+  unnest(sequence) %>% 
+  ggplot(aes(x = 1:length(sequence), y = sequence)) +
+  geom_line() +
+  labs(x = "step", y = "value", title = print(paste0("Collatz sequence with starting value = ", seed_value)))
+```
+
+Glad that worked! Now let's plot the same data on a log-log figure:
+
+```{r}
+# semi-log plot
+collatz_data %>% 
+  filter(seed == seed_value)%>% 
+  select(sequence) %>% 
+  unnest(sequence) %>% 
+  ggplot(aes(x = (1:length(sequence)), y = log(sequence))) +
+  geom_line() +
+  labs(x = "log(step)", y = "log(value)", title = print(paste0("Collatz sequence with starting value = ", seed_value)))
+```
+
+Excellent! How neat! Now let's try to plot all our computed trajectories together 
+starting from their seed values:
+
+```{r}
+# preparing the data
+collatz_sequences <- collatz_data %>% 
+  select(seed, sequence, step_index) %>%
+  unnest(c(sequence, step_index)) %>% 
+  pivot_longer(cols = -c(step_index, seed), names_to = "variable", values_to = "values") %>% 
+  select(-variable)
+```
+
+Let's plot the same two plots as above + a log-log plot, but with partly transparent 
+lines so that we can detect overlaps in trajectories by looking at the opacity of 
+the lines on the plots.
+
+```{r}
+# standard plot
+collatz_sequences %>% 
+  ggplot(aes(x = step_index, y = values, colour = as.factor(seed))) +
+  geom_line() + theme(legend.position = "none") +
+  labs(title = paste0("Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
+       x = "step", y = "value")
+
+# log-log plot
+collatz_sequences %>% 
+  ggplot(aes(x = (step_index), y = log(values), colour = as.factor(seed))) +
+  geom_line(alpha = 0.1) + theme(legend.position = "none") +
+  labs(title = paste0("Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
+       x = "log(step)", y = "log(value)")
+
+# log-log plot
+collatz_sequences %>% 
+  ggplot(aes(x = log(step_index), y = log(values), colour = as.factor(seed))) +
+  geom_line(alpha = 0.1) + theme(legend.position = "none") +
+  labs(title = paste0("Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
+       x = "log(step)", y = "log(value)")
+```
+
+Look at that! Pretty cool huh! And interesting that on the third plot you can 
+observe this fractal regularity in the variance of different lines!
+
+You can see in the first and second plots that it looks like some sequence paths are repeated 
+with an offset. Perhaps they line up at their ends. Let's get visual evidence by 
+plotting the plots above with the steps reversed, starting at the bottom left of 
+plots with the end of the sequences:
+
+```{r}
+# preparing the data
+collatz_sequences_rev <- collatz_data %>% 
+  select(seed, sequence, step_index) %>%
+  rowwise() %>% 
+  mutate(step_index = list(rev(step_index))) %>% 
+  unnest(c(sequence, step_index)) %>% 
+  pivot_longer(cols = -c(step_index, seed), names_to = "variable", values_to = "values") %>% 
+  select(-variable) 
+
+# standard plot
+collatz_sequences_rev %>% 
+  ggplot(aes(x = step_index, y = values, colour = as.factor(seed))) +
+  geom_line(alpha = 0.4) + theme(legend.position = "none") +
+  labs(title = paste0("Reversed Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
+       x = "step", y = "value")
+
+# semi-log plot
+collatz_sequences_rev %>% 
+  ggplot(aes(x = step_index, y = log(values), colour = as.factor(seed))) +
+  geom_line(alpha = 0.1) + theme(legend.position = "none") +
+  labs(title = paste0("Reversed Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
+       x = "step", y = "log(value)")
+
+# log-log plot
+collatz_sequences_rev %>% 
+  ggplot(aes(x = log(step_index), y = log(values), colour = as.factor(seed))) +
+  geom_line(alpha = 0.1) + theme(legend.position = "none") +
+  labs(title = paste0("Reversed Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
+       x = "log(step)", y = "log(value)")
+```
+
+Looks like we were right! Okay, now before we start messing around and relax our 
+conformity to the conditions of the Collatz conjecture, let's make a couple other 
+exploratory plots.
+
+```{r}
+collatz_data %>% 
+  ggplot(aes(x = seed, y = n_steps, colour = log(max_val))) +
+  geom_point(size = .6) +
+
+  labs(title = paste0("Steps to 1 for Collatz sequences with starting values in range: ", 
+                      range(seeds)[1], " - ", range(seeds)[2]),
+       x = "starting value", y = "number of steps to 1", colour = "log(highest reached point)") +
+  theme(legend.position="bottom") +
+  scale_color_gradientn(colours = rainbow(2))
+
+collatz_data %>% 
+  ggplot(aes(x = log(seed), y = log(max_val), colour = n_steps)) +
+  geom_point() + 
+  labs(title = paste0("Highest reached points \nfor Collatz sequences with starting values in range: ", 
+                      range(seeds)[1], " - ", range(seeds)[2]),
+       x = "log(starting value)", y = "log(highest point)", colour = "n steps to 1") +
+  scale_color_gradientn(colours = rainbow(2))
+
+collatz_data %>% 
+  ggplot(aes(x = log(seed), y = log(max_val-seed), colour = n_steps)) +
+  geom_point() +
+  labs(title = paste0("Highest reached points above initial value \nfor Collatz sequences with starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
+       x = "log(starting value)", y = "log(highest point - starting value)", colour = "n steps to 1") +
+  scale_color_gradientn(colours = rainbow(2))
+```
+
+What do all these cool patterns mean? I have no idea, I'm not a mathematician (yet).
+But they are sure fun to compute! 
