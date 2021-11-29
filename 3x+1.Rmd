@@ -3,9 +3,8 @@ title: "Collatz Conjecture exploration"
 author: "Phileas Dazeley-Gaist"
 date: "11/27/2021"
 output: 
-  html_document:
-    df_print: paged
-    keep_md: true
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
