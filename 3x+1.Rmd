@@ -12,9 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-[![Collatz Conjecture XKCD comic](3x+1_files/collatz_conjecture.png)](https://xkcd.com/710/)
-
 # Introduction
+
+[![Collatz Conjecture XKCD comic](3x+1_files/collatz_conjecture.png)](https://xkcd.com/710/)
 
 From [Collatz conjecture, Wikipedia](https://en.wikipedia.org/wiki/Collatz_conjecture):  
 
@@ -242,3 +242,7 @@ collatz_data %>%
 
 What do all these cool patterns mean? I have no idea, I'm not a mathematician (yet).
 But they are sure fun to compute! 
+
+## Messing around and relaxing our compliance with the rulez >:) 
+
+
