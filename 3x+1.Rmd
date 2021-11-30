@@ -3,8 +3,8 @@ title: "Collatz Conjecture exploration"
 author: "Phileas Dazeley-Gaist"
 date: "11/27/2021"
 output: 
-  md_document:
-    variant: markdown_github
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -48,7 +48,7 @@ seeds <- 1:10000
 max_s <- 1000
 ```
 
-Now let's define a function that computed the trajectories and returns:
+Now let's define a function that computes the trajectories and returns:
 
 ```{r}
 collatz_brute_force <- function(start_int, max_steps = 1000){
@@ -127,7 +127,7 @@ collatz_data %>%
   unnest(sequence) %>% 
   ggplot(aes(x = (1:length(sequence)), y = log(sequence))) +
   geom_line() +
-  labs(x = "log(step)", y = "log(value)", title = print(paste0("Collatz sequence with starting value = ", seed_value)))
+  labs(x = "step", y = "log(value)", title = print(paste0("Collatz sequence with starting value = ", seed_value)))
 ```
 
 Excellent! How neat! Now let's try to plot all our computed trajectories together 
@@ -154,12 +154,12 @@ collatz_sequences %>%
   labs(title = paste0("Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
        x = "step", y = "value")
 
-# log-log plot
+# semi-log plot
 collatz_sequences %>% 
   ggplot(aes(x = (step_index), y = log(values), colour = as.factor(seed))) +
   geom_line(alpha = 0.1) + theme(legend.position = "none") +
   labs(title = paste0("Collatz sequences for starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
-       x = "log(step)", y = "log(value)")
+       x = "step", y = "log(value)")
 
 # log-log plot
 collatz_sequences %>% 
@@ -226,7 +226,7 @@ collatz_data %>%
 
 collatz_data %>% 
   ggplot(aes(x = log(seed), y = log(max_val), colour = n_steps)) +
-  geom_point() + 
+  geom_point(size = .6) + 
   labs(title = paste0("Highest reached points \nfor Collatz sequences with starting values in range: ", 
                       range(seeds)[1], " - ", range(seeds)[2]),
        x = "log(starting value)", y = "log(highest point)", colour = "n steps to 1") +
@@ -234,7 +234,7 @@ collatz_data %>%
 
 collatz_data %>% 
   ggplot(aes(x = log(seed), y = log(max_val-seed), colour = n_steps)) +
-  geom_point() +
+  geom_point(size = .6) +
   labs(title = paste0("Highest reached points above initial value \nfor Collatz sequences with starting values in range: ", range(seeds)[1], " - ", range(seeds)[2]),
        x = "log(starting value)", y = "log(highest point - starting value)", colour = "n steps to 1") +
   scale_color_gradientn(colours = rainbow(2))
@@ -242,7 +242,4 @@ collatz_data %>%
 
 What do all these cool patterns mean? I have no idea, I'm not a mathematician (yet).
 But they are sure fun to compute! 
-
-## Messing around and relaxing our compliance with the rulez >:) 
-
 
