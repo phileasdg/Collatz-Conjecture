@@ -1,10 +1,12 @@
 ---
-title: "Collatz Conjecture exploration"
+title: "Collatz Conjecture Exploration"
 author: "Phileas Dazeley-Gaist"
 date: "11/27/2021"
 output: 
   html_document:
     df_print: paged
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r setup, include=FALSE}
