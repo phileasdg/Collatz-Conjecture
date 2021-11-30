@@ -1,0 +1,131 @@
+---
+title: "Collatz Messing About - Breaking some rules"
+author: "Phileas Dazeley Gaist"
+date: "11/29/2021"
+output: 
+  html_document:
+    df_print: paged
+  md_document:
+    variant: markdown_github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Breaking some rules
+
+Let's break some rules and see if we can learn anything! What changes when we change 
+the circumstances in which we compute Collatz - or similar - sequences?
+
+Let's relax and mess about!
+
+## Sequence generating function
+
+Firstly, let's diverge from the rules by making a custom sequence-generation 
+function, which allows us to change the rules for even and odd numbers, and specify 
+a start value, goal value, and maximum number of steps:
+
+```{r}
+sequence_even <- function(even_value, factor_value, added_value){
+  return(factor_value * even_int + added_value)
+}
+
+sequence_odd <- function(odd_value, factor_value, added_value){
+  return(factor_value * odd_int + added_value)
+}
+
+sequence_generator <- function(start_value, goal_value = 1, 
+                               even_fact = 0.5, even_add = 0, 
+                               odd_fact = 3, odd_add = 1,
+                               max_steps = 1000){
+  new_val <- start_value
+  steps <- c(new_val)
+  step_count <- 0
+  
+  while(new_val != 1) {
+    step_count <- step_count + 1
+    if(new_val %% 2 == 0){
+      new_val <- sequence_even(new_val, even_fact, even_add)
+      steps <- c(steps, new_val)}
+    else{
+      new_val <- sequence_odd(new_val, odd_fact, odd_add)
+      steps <- c(steps, new_val)}
+    if(step_count > max_steps){
+      break
+    }
+  }
+  return(list(steps))
+}
+```
+
+Now we can make the rules vary across 4 dimensions: the factors in either rule, 
+and the additions in either rule. 
+
+Let's see it in action! 
+
+## Alternate sequence types
+
+First, let's create a few vectors of parameters to enter into our function. For 
+factor values, I chose ten below 1, and 10 above. Factor values below 1 are -1, and 
+values from 0.1 to 0.9 separated by 0.1 increments, while values above are 2 to 20. 
+For addition values, I chose values from 1 to 20, separated by single integer 
+increments.
+
+Why these values? It's hard to say exactly but my instinct was that it might be 
+interesting that way: Reversing the vectors for left and right makes it easy to 
+keep the sequence generation parameters different for left and right, having the 
+same number of parameters is convenient if I want to use some types of loops, and 
+I liked the idea of having half of the factor values below 1, and the other half above.
+
+Of course, I'd like to also test sequence generations with the same odd and even 
+rules (which will likely/almost surely be a lot more/completely generally predictable), 
+and sequence generations with randomised parameters from these vectors, and perhaps 
+others too! 
+
+```{r}
+even_factors <- c(-1, seq(0.1, 0.9, by = 0.1), seq(1, 10, by = 1))
+even_additions <- c(seq(1, 20, by = 1))
+odd_factors <- rev(even_factors)
+odd_addition <- rev(even_additions)
+```
+
+Now we need to collect some data:
+
+```{r}
+seeds <- 1:10
+max_s <- 1000
+```
+
+We can collect and group the data in data frames by sequence varieties or by 
+starting values.
+
+By sequence varieties:
+
+```{r}
+
+```
+
+By starting values: 
+
+```{r}
+
+```
+
+Ideas of things to try:
+
+- taking random values in a range and plotting their trajectories
+- plotting the trajectories of decimal values
+- plotting the trajectories of even and odd numbers in different colours
+- computing and plotting trajectories for different rules
+- computing the trajectories of negative numbers
+- computing the trajectories of imaginary and complex numbers (possibly with a 
+modification for complex numbers which are neither even nor odd, or by using modified
+rules which would force the values to be either odd or even)
+- look at patterns in the data, run statistical tests on them, and maybe forms of 
+correlation tests and regressions
+- plots of sequences with different parameters on top of each other to see how the 
+parameters make the end sequences vary (randomised or ordered, or the same values)
+- plot a visualisation of the latent space between sequences of different parameters
+- make animations between parameters and save them as GIF images
