@@ -1,4 +1,4 @@
-This repository contains a fun little R exploration of Collatz sequences and the Collatz conjecture. I don't get very far in my exploration, and my goal is not to prove or disprove it (nor, I suspect, would I get close if I tried), but I still had fun playing around with sequences and graphs, and I might revisit this project later and mess around with it more, who knows? :) 
+This repository contains a fun little R exploration of Collatz sequences and the Collatz conjecture. I don't get very far in my exploration, and my goal is not to prove or disprove it (nor, I suspect, would I get close if I tried, and besides, we know it must be true for almost all values, and all values that I have the time and dedication to compute on my laptop), but I still had fun playing around with sequences and graphs, and I might revisit this project later and mess around with it more, who knows? :) 
 
 You can consult my exploration [here](3x+1.md)
 
