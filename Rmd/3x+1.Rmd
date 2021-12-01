@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 ```
 
-# Introduction
+# Introduction: The Collatz conjecture
 
 [![Collatz Conjecture XKCD comic](3x+1_files/collatz_conjecture.png)](https://xkcd.com/710/)
 
